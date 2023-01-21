@@ -1,15 +1,17 @@
-import Stepper as Stepper
+from Stepper import Stepper
 
 stepsPerRevolution:int = 400
 
+try:
+    myStepper = Stepper(stepsPerRevolution, 29, 31, 33, 35)
 
-MyStepper = Stepper(stepsPerRevolution, 29, 31, 33, 35)
+    revs:int = 20
+    counter: int = 0
 
-revs:int = 20
-counter: int = 0
+    myStepper.setSpeed(100)
 
-MyStepper.setSpeed(100)
-
-while(True):
-    for i in range(0,20):
-        MyStepper.step(-stepsPerRevolution)
+    while(True):
+        for i in range(0,20):
+            myStepper.step(-stepsPerRevolution)
+finally:
+    myStepper.close()
