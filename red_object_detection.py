@@ -36,28 +36,29 @@ pipeline = dai.Pipeline()
 
 # Define source and outputs
 camRgb = pipeline.create(dai.node.ColorCamera)
+manip = pipeline.create(dai.node.ImageManip)
+manip.initialConfig.setResize(640,360)
+manip.initialConfig.setFrameType(dai.ImgFrame.Type.BGR888p)
 xoutVideo = pipeline.create(dai.node.XLinkOut)
-
 xoutVideo.setStreamName("video")
 
+# Linking
+camRgb.video.link(manip.inputImage)
+manip.out.link(xoutVideo.input)
 # Properties
-camRgb.setPreviewSize(300, 300)
 camRgb.setBoardSocket(dai.CameraBoardSocket.RGB)
 camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
 camRgb.setInterleaved(True)
 camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
 camRgb.setFps(12)
-camRgb.setVideoSize(width=640, height=360)
-
-# Linking
-camRgb.video.link(xoutVideo.input)
+# camRgb.setIspScale(9,16)
 
 # Connect to device and start pipeline
 with dai.Device(pipeline) as device:
 
 # capture frames from a camera 
 # cap = cv.VideoCapture(1) 
-	video = device.getOutputQueue('video')
+	video = device.getOutputQueue('video', maxSize=8, blocking=False)
 
 	img_data = []
 
