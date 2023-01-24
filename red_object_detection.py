@@ -1,6 +1,7 @@
 #import the libraries
 import cv2 as cv
 import numpy as np
+import depthai as dai
 #import imutils
 
 #HSV_LOW = [160, 100, 50]
@@ -22,14 +23,6 @@ HSV_HIGH = [255, 255, 255]
 #    HSV_HIGH[1] = cv.getTrackbarPos('hsv_high_s','Track')
 #    HSV_HIGH[2] = cv.getTrackbarPos('hsv_high_v','Track')
 
-
-# capture frames from a camera 
-cap = cv.VideoCapture(0) 
-  
-
-img_data = []
-
-
 #cv.namedWindow("Track", cv.WINDOW_NORMAL)
 #cv.createTrackbar('hsv_low_h','Track', 160, 180, callback)
 #cv.createTrackbar('hsv_low_v','Track', 100, 255, callback)
@@ -38,98 +31,130 @@ img_data = []
 #cv.createTrackbar('hsv_high_v','Track', 15, 255, callback)
 #cv.createTrackbar('hsv_high_s','Track', 15, 255, callback)
 
-while(True):
-	# reads frames from a camera 
-	ret, img = cap.read()
+# Create pipeline
+pipeline = dai.Pipeline()
 
-	#convert the BGR image to HSV colour space
-	hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
-	#obtain the grayscale image of the original image
-	gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-	gray = cv.medianBlur(gray, 5)
-	#set the bounds for the red hue
-	lower_red = np.array(HSV_LOW)
-	upper_red = np.array(HSV_HIGH)
+# Define source and outputs
+camRgb = pipeline.create(dai.node.ColorCamera)
+xoutVideo = pipeline.create(dai.node.XLinkOut)
 
-	#create a mask using the bounds set
-	mask = cv.inRange(hsv, lower_red, upper_red)
-	#create an inverse of the mask
-	mask_inv = cv.bitwise_not(mask)
-	#Filter only the red colour from the original image using the mask(foreground)
-	res = cv.bitwise_and(img, img, mask=mask)
-	#Filter the regions containing colours other than red from the grayscale image(background)
-	background = cv.bitwise_and(gray, gray, mask = mask_inv)
-	#convert the one channelled grayscale background to a three channelled image
-	background = np.stack((background,)*3, axis=-1)
-	#add the foreground and the background
-	added_img = cv.add(res, background)
+xoutVideo.setStreamName("video")
 
-	# Filter Smoothing
-	mask = cv.bilateralFilter(mask, 9, 75, 75)
-	# Contouring, done on color mask
-	frame = cv.cvtColor(mask, cv.COLOR_BGR2RGB)
-	g = cv.cvtColor(frame, cv.COLOR_RGB2GRAY)
-	edge = cv.Canny(g, 140, 210)
+# Properties
+camRgb.setPreviewSize(300, 300)
+camRgb.setBoardSocket(dai.CameraBoardSocket.RGB)
+camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
+camRgb.setInterleaved(True)
+camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
+camRgb.setFps(12)
+camRgb.setVideoSize(width=640, height=360)
 
-	contours, hierarchy = cv.findContours(edge, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+# Linking
+camRgb.video.link(xoutVideo.input)
 
-	for c in contours:
-		area = cv.contourArea(c)
-		if area < 10:
-			cv.fillPoly(edge, pts=[c], color=0)
-			continue
+# Connect to device and start pipeline
+with dai.Device(pipeline) as device:
 
-	edge = cv.morphologyEx(edge, cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (51,51)));
+# capture frames from a camera 
+# cap = cv.VideoCapture(1) 
+	video = device.getOutputQueue('video')
+
+	img_data = []
+
+	while(True):
+		videoFrame = video.get()
+		# reads frames from a camera 
+		# ret, img = cap.read()
+		img = videoFrame.getCvFrame()
+		
+
+		#convert the BGR image to HSV colour space
+		hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
+		#obtain the grayscale image of the original image
+		gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+		gray = cv.medianBlur(gray, 5)
+		#set the bounds for the red hue
+		lower_red = np.array(HSV_LOW)
+		upper_red = np.array(HSV_HIGH)
+
+		#create a mask using the bounds set
+		mask = cv.inRange(hsv, lower_red, upper_red)
+		#create an inverse of the mask
+		mask_inv = cv.bitwise_not(mask)
+		#Filter only the red colour from the original image using the mask(foreground)
+		res = cv.bitwise_and(img, img, mask=mask)
+		#Filter the regions containing colours other than red from the grayscale image(background)
+		background = cv.bitwise_and(gray, gray, mask = mask_inv)
+		#convert the one channelled grayscale background to a three channelled image
+		background = np.stack((background,)*3, axis=-1)
+		#add the foreground and the background
+		added_img = cv.add(res, background)
+
+		# Filter Smoothing
+		mask = cv.bilateralFilter(mask, 9, 75, 75)
+		# Contouring, done on color mask
+		frame = cv.cvtColor(mask, cv.COLOR_BGR2RGB)
+		g = cv.cvtColor(frame, cv.COLOR_RGB2GRAY)
+		edge = cv.Canny(g, 140, 210)
+
+		contours, hierarchy = cv.findContours(edge, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+		for c in contours:
+			area = cv.contourArea(c)
+			if area < 10:
+				cv.fillPoly(edge, pts=[c], color=0)
+				continue
+
+		edge = cv.morphologyEx(edge, cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (51,51)));
 
 
-	contours, hierarchy = cv.findContours(edge, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+		contours, hierarchy = cv.findContours(edge, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
 
-	#for c in contours:
-	#	if cv.contourArea(c) > 500:
-	#		hull = cv.convexHull(c)
-	#		cv.drawContours(added_img, [hull], 0, (0,255,0), 2)
+		#for c in contours:
+		#	if cv.contourArea(c) > 500:
+		#		hull = cv.convexHull(c)
+		#		cv.drawContours(added_img, [hull], 0, (0,255,0), 2)
 
-	for c in contours:
-		area = cv.contourArea(c)
-		if area < 500:
-			cv.fillPoly(edge, pts=[c], color=0)
-			continue
+		for c in contours:
+			area = cv.contourArea(c)
+			if area < 500:
+				cv.fillPoly(edge, pts=[c], color=0)
+				continue
 
-		rect = cv.minAreaRect(c)
-		box = cv.boxPoints(rect)
-		box = np.int0(box)
+			rect = cv.minAreaRect(c)
+			box = cv.boxPoints(rect)
+			box = np.int0(box)
 
-		cv.drawContours(added_img, [box], 0, (0,255,0), 1)
-
-
-
-	cv.namedWindow('Contours', cv.WINDOW_NORMAL)
-	cv.imshow('Contours', added_img)
+			cv.drawContours(added_img, [box], 0, (0,255,0), 1)
 
 
-	#create resizable windows for the images
-	#cv.namedWindow("res", cv.WINDOW_NORMAL)
-	#cv.namedWindow("hsv", cv.WINDOW_NORMAL)
-	#cv.namedWindow("mask", cv.WINDOW_NORMAL)
-	#cv.namedWindow("added", cv.WINDOW_NORMAL)
-	#cv.namedWindow("back", cv.WINDOW_NORMAL)
-	#cv.namedWindow("mask_inv", cv.WINDOW_NORMAL)
-	#cv.namedWindow("gray", cv.WINDOW_NORMAL)
 
-	#display the images
-	#cv.imshow("back", background)
-	#cv.imshow("mask_inv", mask_inv)
-	#cv.imshow("added",added_img)
-	#cv.imshow("mask", mask)
-	#cv.imshow("gray", gray)
-	#cv.imshow("hsv", hsv)
-	#cv.imshow("res", res)
-	if cv.waitKey(1) & 0xFF == ord('q'):
-		break
+		cv.namedWindow('Contours', cv.WINDOW_NORMAL)
+		cv.imshow('Contours', added_img)
 
-cap.release()
-cv.destroyAllWindows()
+
+		#create resizable windows for the images
+		#cv.namedWindow("res", cv.WINDOW_NORMAL)
+		#cv.namedWindow("hsv", cv.WINDOW_NORMAL)
+		#cv.namedWindow("mask", cv.WINDOW_NORMAL)
+		#cv.namedWindow("added", cv.WINDOW_NORMAL)
+		#cv.namedWindow("back", cv.WINDOW_NORMAL)
+		#cv.namedWindow("mask_inv", cv.WINDOW_NORMAL)
+		#cv.namedWindow("gray", cv.WINDOW_NORMAL)
+
+		#display the images
+		#cv.imshow("back", background)
+		#cv.imshow("mask_inv", mask_inv)
+		#cv.imshow("added",added_img)
+		#cv.imshow("mask", mask)
+		#cv.imshow("gray", gray)
+		#cv.imshow("hsv", hsv)
+		#cv.imshow("res", res)
+		if cv.waitKey(1) & 0xFF == ord('q'):
+			break
+
+	cv.destroyAllWindows()
 
 
 
