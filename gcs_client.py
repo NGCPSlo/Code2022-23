@@ -4,6 +4,7 @@ import constants
 
 
 class GCSClient:
+  # Initializes a GCS Client object, set the topic to be MEA so GCS can target messages for us
   def __init__(self, broker: str = constants.broker, \
                      port: int = constants.port, \
                      topic: str = constants.topic, \
@@ -32,17 +33,19 @@ class GCSClient:
       print("Connection refused - not authorised")
     else:
       print("rc value incorrect, something went wrong")
-    
+  
+  # Callback function to be called whenever the MEA receives a message from GCS
   def on_message(self, client:mqtt_client.Client, userdata, msg: mqtt_client.MQTTMessage):
     dataString: str = msg.payload.decode()
 
     pass
-
+  
   def subscribe(self):
     self.client.subscribe(self.topic)
     self.client.on_message = self.on_message
     self.client.loop_start()
   
+  # Publishes a message to the MQTT service
   def send(self, message:str, timeout:int = None):
     msgInfo: mqtt_client.MQTTMessageInfo = self.client.publish(self.topic, message, qos = 2)
     msgInfo.wait_for_publish(timeout)

@@ -37,7 +37,7 @@ pipeline = dai.Pipeline()
 # Define source and outputs
 camRgb = pipeline.create(dai.node.ColorCamera)
 manip = pipeline.create(dai.node.ImageManip)
-manip.initialConfig.setResize(640,360)
+manip.initialConfig.setResize(320,180)
 manip.initialConfig.setFrameType(dai.ImgFrame.Type.BGR888p)
 xoutVideo = pipeline.create(dai.node.XLinkOut)
 xoutVideo.setStreamName("video")
