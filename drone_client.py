@@ -1,8 +1,20 @@
 print("Start simulator (SITL)")
-connection_string = "udp:127.0.0.1:14551"
+#connection_string = "udp:127.0.0.1:14551"
+connection_string = "tcp:127.0.0.1:5763"
+
 # Import DroneKit-Python
 import math
 import time
+import sys
+
+import collections
+try:
+    from collections import abc
+    collections.MutableMapping = abc.MutableMapping
+except:
+    pass
+
+
 from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative
 
 # Connect to the Vehicle.
@@ -133,6 +145,7 @@ print("Flying to destination")
 vehicle.mode = VehicleMode('GUIDED')
 while vehicle.mode.name != "GUIDED":
   time.sleep(1)
+#coordinates in x-y reference ex) x 50, y 35  
 goto(50, 35)
 goto(-100, -10)
 goto(20, 16)
