@@ -1,9 +1,14 @@
 print("Start simulator (SITL)")
-connection_string = "udp:127.0.0.1:14551"
+connection_string = "tcp:127.0.0.1:5763"
 # Import DroneKit-Python
 import math
 import time
+import sys
+if sys.version_info.major == 3 and sys.version_info.minor >= 10:
+    import collections
+    setattr(collections, "MutableMapping", collections.abc.MutableMapping)
 from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative
+
 
 # Connect to the Vehicle.
 print("Connecting to vehicle on: %s" % (connection_string,))
@@ -76,6 +81,10 @@ def get_bearing(aLocation1, aLocation2):
     return bearing
 
 def goto(dNorth, dEast, gotoFunction=vehicle.simple_goto):
+  """
+  Takes in Cartesian coordinates in meters as a target to fly to. 
+  Then flies the vehicle to the target location, stopping once the target has been reached.
+  """
   currentLocation=vehicle.location.global_relative_frame
   targetLocation=get_location_metres(currentLocation, dNorth, dEast)
   targetDistance=get_distance_metres(currentLocation, targetLocation)
@@ -112,13 +121,14 @@ while not vehicle.armed:
   print(" Waiting for arming...")
   time.sleep(1)
 
-
+# Take off 50m from starting location
 target_alt = vehicle.location.global_relative_frame.alt + 50
 vehicle.simple_takeoff(alt=target_alt)
 
 vehicle.parameters
 print(" Location: %s" % vehicle.location.global_frame)  
 
+# Delay until takeoff height is reached
 while True:
   print(" Altitude: ", vehicle.location.global_relative_frame.alt)
   #Break and return from function just below target altitude.
@@ -127,7 +137,7 @@ while True:
       break
   time.sleep(1)
 
-print("Let it vibe for 15 seconds")
+# Wait for some time, test flying in different directions, then return home
 time.sleep(15)
 print("Flying to destination")
 vehicle.mode = VehicleMode('GUIDED')
