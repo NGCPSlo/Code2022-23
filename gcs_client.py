@@ -1,3 +1,4 @@
+import json
 from paho.mqtt import client as mqtt_client
 import paho.mqtt
 import constants
@@ -37,6 +38,7 @@ class GCSClient:
   # Callback function to be called whenever the MEA receives a message from GCS
   def on_message(self, client:mqtt_client.Client, userdata, msg: mqtt_client.MQTTMessage):
     dataString: str = msg.payload.decode()
+    jsonMsg = json.loads(dataString)
 
     pass
   
