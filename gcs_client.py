@@ -40,6 +40,33 @@ class GCSClient:
     dataString: str = msg.payload.decode()
     jsonMsg = json.loads(dataString)
 
+    x = jsonMsg.get("search_area")
+    y = jsonMsg.get("home_coordinates")
+    z = jsonMsg.get("drop_coordinates")
+      
+    #search_area array with 3 objects holding lng and lat
+    if jsonMsg.get("search_area") != None:
+      search_lat_0 = x["search_area"][0]["lat"]
+      search_long_0 = x["search_area"][0]["lng"]
+      search_lat_1 = x["search_area"][1]["lat"]
+      search_long_1 = x["search_area"][1]["lng"]
+      search_lat_2 = x["search_area"][2]["lat"]
+      search_long_2 = x["search_area"][2]["lng"]   
+    
+    
+    
+    #home_coordinates
+    #assuming "4" is vehicle: MEDEVAC
+    elif jsonMsg.get("home_coordinates") != None:
+      home_lat = y["home_coordinates"]["2"]["lat"]
+      home_long = y["home_coordinates"]["2"]["lng"]
+    
+    
+    #drop_coordinates
+    elif jsonMsg.get("drop_coordinates") != None:
+      drop_lat = z["drop_coordinates"]["lat"]
+      drop_long = z["drop_coordinates"]["lng"]
+    
     pass
   
   def subscribe(self):
