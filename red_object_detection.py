@@ -4,6 +4,8 @@ import numpy as np
 import depthai as dai
 #import imutils
 
+
+# color detection bounds
 #HSV_LOW = [160, 100, 50]
 #HSV_HIGH = [180, 255, 255]
 HSV_LOW = [153, 118, 77]
