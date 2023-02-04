@@ -96,19 +96,25 @@ with dai.Device(pipeline) as device:
 		# Contouring, done on color mask
 		frame = cv.cvtColor(mask, cv.COLOR_BGR2RGB)
 		g = cv.cvtColor(frame, cv.COLOR_RGB2GRAY)
+		# Detect only edges
 		edge = cv.Canny(g, 140, 210)
 
+		# Get Contours from of edges, (external = don't detect contours within contours)
 		contours, hierarchy = cv.findContours(edge, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
+		# for those contours with an area less than 10, fill in (remove) them
+		#	removes static and decreases artifact detection
 		for c in contours:
 			area = cv.contourArea(c)
 			if area < 10:
 				cv.fillPoly(edge, pts=[c], color=0)
 				continue
 
+		# merge small and near by contours
+		#	some contours aren't detected in one connected clear contour, this treats that issue
 		edge = cv.morphologyEx(edge, cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_ELLIPSE, (51,51)));
 
-
+		# get the now new contours
 		contours, hierarchy = cv.findContours(edge, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
 
@@ -117,20 +123,25 @@ with dai.Device(pipeline) as device:
 		#		hull = cv.convexHull(c)
 		#		cv.drawContours(added_img, [hull], 0, (0,255,0), 2)
 
+		# for those contours with an area less than 500, fill in (remove) them
+		#	size detection calibration essentially
 		for c in contours:
 			area = cv.contourArea(c)
 			if area < 500:
 				cv.fillPoly(edge, pts=[c], color=0)
 				continue
 
+			# for contours greater than 500
+			#	create recatngular box
 			rect = cv.minAreaRect(c)
 			box = cv.boxPoints(rect)
 			box = np.int0(box)
 
+			# draw detection rectangles
 			cv.drawContours(added_img, [box], 0, (0,255,0), 1)
 
 
-
+		# display image with detection boxes
 		cv.namedWindow('Contours', cv.WINDOW_NORMAL)
 		cv.imshow('Contours', added_img)
 
@@ -152,9 +163,12 @@ with dai.Device(pipeline) as device:
 		#cv.imshow("gray", gray)
 		#cv.imshow("hsv", hsv)
 		#cv.imshow("res", res)
+
+		# on kjey 'q' stop
 		if cv.waitKey(1) & 0xFF == ord('q'):
 			break
 
+	# destroy them windows
 	cv.destroyAllWindows()
 
 
