@@ -56,9 +56,9 @@ class Stepper:
                     if(self.step_number == 0):
                         self.step_number = self.number_of_steps
                     
-                    self.step_number =- 1
+                    self.step_number -= 1
 
-                steps_left =- 1
+                steps_left -= 1
 
                 self.stepMotor(self.step_number % 4)
 
