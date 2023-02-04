@@ -11,7 +11,6 @@ try:
     myStepper.setSpeed(100)
 
     while(True):
-        for i in range(0,20):
-            myStepper.step(-stepsPerRevolution)
+        myStepper.step(-stepsPerRevolution)
 finally:
     myStepper.close()

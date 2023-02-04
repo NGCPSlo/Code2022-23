@@ -1,5 +1,5 @@
 import time
-import RPi.GPIO as GPIO
+import Jetson.GPIO as GPIO
 GPIO.setmode(GPIO.BOARD)
 
 
@@ -66,30 +66,30 @@ class Stepper:
     def stepMotor(self, this_step: int):
         #1010
         if this_step == 0:
-                GPIO.output(self.motor_pin_1, True)
-                GPIO.output(self.motor_pin_2, False)
-                GPIO.output(self.motor_pin_3, True)
-                GPIO.output(self.motor_pin_4, False)
+                GPIO.output(self.motor_pin_1, GPIO.HIGH)
+                GPIO.output(self.motor_pin_2, GPIO.LOW)
+                GPIO.output(self.motor_pin_3, GPIO.HIGH)
+                GPIO.output(self.motor_pin_4, GPIO.LOW)
 
         #0110
         elif this_step == 1:
-                GPIO.output(self.motor_pin_1, False)
-                GPIO.output(self.motor_pin_2, True)
-                GPIO.output(self.motor_pin_3, True)
-                GPIO.output(self.motor_pin_4, False)
+                GPIO.output(self.motor_pin_1, GPIO.LOW)
+                GPIO.output(self.motor_pin_2, GPIO.HIGH)
+                GPIO.output(self.motor_pin_3, GPIO.HIGH)
+                GPIO.output(self.motor_pin_4, GPIO.LOW)
 
         #0101
         elif this_step == 2:
-                GPIO.output(self.motor_pin_1, False)
-                GPIO.output(self.motor_pin_2, True)
-                GPIO.output(self.motor_pin_3, False)
-                GPIO.output(self.motor_pin_4, True)
+                GPIO.output(self.motor_pin_1, GPIO.LOW)
+                GPIO.output(self.motor_pin_2, GPIO.HIGH)
+                GPIO.output(self.motor_pin_3, GPIO.LOW)
+                GPIO.output(self.motor_pin_4, GPIO.HIGH)
 
         #1001
         elif this_step == 3:
-                GPIO.output(self.motor_pin_1, True)
-                GPIO.output(self.motor_pin_2, False)
-                GPIO.output(self.motor_pin_3, False)
-                GPIO.output(self.motor_pin_4, True)
+                GPIO.output(self.motor_pin_1, GPIO.HIGH)
+                GPIO.output(self.motor_pin_2, GPIO.LOW)
+                GPIO.output(self.motor_pin_3, GPIO.LOW)
+                GPIO.output(self.motor_pin_4, GPIO.HIGH)
     def close(self):
         GPIO.cleanup()
