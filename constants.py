@@ -1,5 +1,5 @@
-broker =  "test.mosquitto.org"
+broker = "localhost"
 port = 1883
-topic = "python/mqtt"
+topic = "/data"
 username = 'test_user'
 password = "test_password"
