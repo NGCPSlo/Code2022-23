@@ -1,4 +1,5 @@
 import json
+import time
 from paho.mqtt import client as mqtt_client
 import paho.mqtt
 import constants
@@ -42,6 +43,7 @@ def on_message(client:mqtt_client.Client, userdata, msg: mqtt_client.MQTTMessage
 def on_connect(client: mqtt_client.Client, userdata, flags: dict[str, int], rc: int):
   if(rc == 0):
     print("Connected to GCS successfully")
+    process_callbacks(client)
   elif(rc == 1):
     print("Connection refused - incorrect protocol version")
   elif(rc == 2):
@@ -54,6 +56,23 @@ def on_connect(client: mqtt_client.Client, userdata, flags: dict[str, int], rc: 
     print("Connection refused - not authorised")
   else:
     print("rc value incorrect, something went wrong")
+    
+def process_callbacks(client: mqtt_client.Client):
+  #processes the callbacks from the broker(GCS)
+  
+  client.connected_flag= False#create flag in class
+  broker="192.168.1.184" #change broker IP
+  client = client("GCS")   #create new instance, need to change 
+  client.on_connect= on_connect  #bind call back function
+  client.loop_start()
+  print("Connecting to broker ",broker)
+  client.connect(broker)      #connect to broker
+  while not client.connected_flag: #wait in loop
+      print("In wait loop")
+      time.sleep(1)
+  print("in Main Loop")
+  client.loop_stop()    #Stop loop 
+  client.disconnect() # disconnect  
 
 class GCSClient:
   # Initializes a GCS Client object, set the topic to be MEA so GCS can target messages for us
