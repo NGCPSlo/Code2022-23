@@ -24,8 +24,8 @@ message = ""
 #    message="Device 1 : Data " + str(i)
 
 
-command_geo = '{"geofence":[{"coordinates":[{"lat":0.0,"lng":0.0},{"lat":0.0,"lng":0.0},{"lat":0.0,"lng":0.0}],"keep_in":true},{"coordinates":[{"lat":0.0,"lng":0.0},{"lat":0.0,"lat":0.0},{"lat":0.0,"lng":0.0},],"keep_in":false}]}'
-command_search = '{"search_area":[{"lng":0.0,"lat":0.0},{"lat":0.0,"lng":0.0"},{"lat":0.0,"lng":0.0}]}'
+command_geo = '{"geofence":[{"coordinates":[{"lat":0.0,"lng":0.0},{"lat":0.0,"lng":0.0},{"lat":0.0,"lng":0.0}],"keep_in":true},{"coordinates":[{"lat":0.0,"lng":0.0},{"lat":0.0,"lng":0.0},{"lat":0.0,"lng":0.0}],"keep_in":false}]}'
+command_search = '{"search_area":[{"lng":0.0,"lat":0.0},{"lat":0.0,"lng":0.0},{"lat":0.0,"lng":0.0}]}'
 command_home = '{"home_coordinates":{"2":{"vehicle":"MEA","lat":33.9,"lng":-117.6}}}'
 command_drop = '{"drop_coordinates":{"lat":33.9,"lng":-117}}'
 command_evac = '{"evacuation_coordinates":{"lat":33.9,"lng":-117.6}}'
