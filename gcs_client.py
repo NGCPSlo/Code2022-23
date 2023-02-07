@@ -23,9 +23,7 @@ def on_message(client:mqtt_client.Client, userdata, msg: mqtt_client.MQTTMessage
     search_lat_1 = x[1]["lat"]
     search_long_1 = x[1]["lng"]
     search_lat_2 = x[2]["lat"]
-    search_long_2 = x[2]["lng"]   
-  
-  
+    search_long_2 = x[2]["lng"] 
   
   #home_coordinates
   #assuming "4" is vehicle: MEDEVAC
@@ -43,7 +41,6 @@ def on_message(client:mqtt_client.Client, userdata, msg: mqtt_client.MQTTMessage
 def on_connect(client: mqtt_client.Client, userdata, flags: dict[str, int], rc: int):
   if(rc == 0):
     print("Connected to GCS successfully")
-    process_callbacks(client)
   elif(rc == 1):
     print("Connection refused - incorrect protocol version")
   elif(rc == 2):
@@ -56,38 +53,19 @@ def on_connect(client: mqtt_client.Client, userdata, flags: dict[str, int], rc: 
     print("Connection refused - not authorised")
   else:
     print("rc value incorrect, something went wrong")
-    
-def process_callbacks(client: mqtt_client.Client):
-  #processes the callbacks from the broker(GCS)
-  
-  client.connected_flag= False#create flag in class
-  broker="192.168.1.184" #change broker IP
-  client = client("GCS")   #create new instance, need to change 
-  client.on_connect= on_connect  #bind call back function
-  client.loop_start()
-  print("Connecting to broker ",broker)
-  client.connect(broker)      #connect to broker
-  while not client.connected_flag: #wait in loop
-      print("In wait loop")
-      time.sleep(1)
-  print("in Main Loop")
-  client.loop_stop()    #Stop loop 
-  client.disconnect() # disconnect  
 
 class GCSClient:
   # Initializes a GCS Client object, set the topic to be MEA so GCS can target messages for us
   def __init__(self, broker: str = constants.broker, \
                      port: int = constants.port, \
                      topic: str = constants.topic, \
-                    #  username: str = constants.username, \
-                    #  password: str = constants.password, \
+                     onMessageFunc = on_message, \
                      clientId: str = None) -> None:
     print("Initializing Client")
     self.topic = topic
     self.client = mqtt_client.Client("user")
     self.client.on_connect = on_connect
-    self.client.on_message = on_message
-    # self.client.username_pw_set(username, password)
+    self.client.on_message = onMessageFunc
     self.client.connect(broker, port)
 
    
@@ -100,13 +78,6 @@ class GCSClient:
     msgInfo: mqtt_client.MQTTMessageInfo = self.client.publish(self.topic, message, qos = 2)
     msgInfo.wait_for_publish(timeout)
 
-
-  # def on_message( client, userdata, message):
-  #   #checking message sent to client
-  #     print("message received " ,str(message.payload.decode("utf-8")))
-  #     print("message topic=",message.topic)
-  #     print("message qos=",message.qos)
-  #     print("message retain flag=",message.retain)
   
 
 if __name__ == '__main__':
