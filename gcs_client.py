@@ -48,7 +48,7 @@ def on_message(client: mqtt_client.Client, userdata, msg: mqtt_client.MQTTMessag
         geo_lat_2_t = a[0]["coordinates"][2]["lat"]
         geo_lng_2_t = a[0]["coordinates"][2]["lng"]
 
-        print(a[0][1])
+        print("coordinates")
         print("lat_0", geo_lat_0_t, "long_0", geo_lng_0_t)
         print("lat_1", geo_lat_1_t, "long_1", geo_lng_1_t)
         print("lat_2", geo_lat_2_t, "long_2", geo_lng_2_t)
@@ -61,7 +61,7 @@ def on_message(client: mqtt_client.Client, userdata, msg: mqtt_client.MQTTMessag
         geo_lat_2_f = a[1]["coordinates"][2]["lat"]
         geo_lng_2_f = a[1]["coordinates"][2]["lng"]
 
-        print(a[1][1])
+        print("coordinates")
         print("lat_0", geo_lat_0_f, "long_0", geo_lng_0_f)
         print("lat_1", geo_lat_1_f, "long_1", geo_lng_1_f)
         print("lat_2", geo_lat_2_f, "long_2", geo_lng_2_f)
