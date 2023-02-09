@@ -1,6 +1,4 @@
-connection_string = "/dev/ttyS0"
 
-# Import DroneKit-Python
 import math
 import time
 
@@ -14,32 +12,41 @@ except:
 from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative
 
 class DroneClient:
-    def __init__(self, connectionStr: str = connection_string) -> None:
+    def __init__(self, connectionStr: str =  "/dev/ttyS0") -> None:
         
         self.connectionStr = connectionStr
         self.vehicle = None
         
     def connect(self, baud: int = 57600):
-        print("Connecting to vehicle on: %s" % (connection_string,))
-
-        self.vehicle = connect(connection_string, wait_ready=False,)
+        '''
+        Connects to vehicle and blocks until it is ready
+        '''
+        print("Connecting to vehicle on: %s" % (self.connectionStr,))
+        self.vehicle = connect(self.connectionStr, wait_ready=False,)
         self.vehicle.wait_ready(True, raise_exception=False)
     
     def armVehicle(self):
+        """
+        Ensures vehicle is ready to arm and arms it.
+        """
 
         if self.vehicle == None:
             raise Exception("Vehicle not connected")
-                
+        
+        # Waits until drone is armable
         while not self.vehicle.is_armable:
             print(" Waiting until armable...")
             time.sleep(1)
-        print("Arming the vehicle")
 
+        # Sets the drone mode to guided, blocks until complete
+        print("Arming the vehicle")
         self.vehicle.mode =  VehicleMode("GUIDED")
         while self.vehicle.mode.name != "GUIDED":
             time.sleep(1)
+        
+        # Set vehicle to armed and blocks until it is
+
         self.vehicle.armed = True
-        # Confirm vehicle armed before attempting to take off
         while not self.vehicle.armed:
             print(" Waiting for arming...")
             time.sleep(1)
@@ -47,7 +54,7 @@ class DroneClient:
     def takeoff(self,heightInM):
         self.vehicle.simple_takeoff(alt=heightInM)
         # Delay until takeoff height is reached
-        while True:
+        while self.vehicle.mode.name=="GUIDED":
             print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
             # Within 5% of target altitude or within 1m 
             if self.vehicle.location.global_relative_frame.alt>=heightInM*0.95 or\
@@ -118,7 +125,7 @@ class DroneClient:
             bearing += 360.00
         return bearing
 
-    def goto(self, dNorth, dEast, gotoFunction = None):
+    def flyToMeters(self, dNorth, dEast, gotoFunction = None):
         """
         Takes in Cartesian coordinates in meters as a target to fly to. 
         Then flies the vehicle to the target location, stopping once the target has been reached.
@@ -139,7 +146,7 @@ class DroneClient:
             time.sleep(1)
 
     def printVehicleState(self):
-        # Get some vehicle attributes (state)
+        # Prints some vehicle attributes (state)
         vehicle = self.vehicle
         print("Get some vehicle attribute values:")
         print(" GPS: %s" % vehicle.gps_0)
@@ -152,6 +159,25 @@ class DroneClient:
 
     def goHome(self):
         self.vehicle.mode("RTL")
+
+    def flyToCords(self, lat:float, lon: float, alt: float = None):
+        '''
+        Sets vehicle target destination to a set of coordinates and blocks until destination reached
+        '''
+        startLocation=self.vehicle.location.global_relative_frame
+        targetLocation = LocationGlobalRelative(lat, lon, alt)
+        self.vehicle.simple_goto(targetLocation)
+
+        targetDistance=self.get_distance_metres(startLocation, targetLocation)
+
+        while self.vehicle.mode.name=="GUIDED": #Stop action if we are no longer in guided mode.
+            remainingDistance=self.get_distance_metres(self.vehicle.location.global_frame, targetLocation)
+            print("Distance to target: ", remainingDistance)
+            #Block until 1% of target distance is reached or within 1m
+            if remainingDistance<=max(targetDistance*0.01, 1): 
+                print("Reached target")
+                break
+            time.sleep(1)
 
 
 if __name__ == '__main__':
