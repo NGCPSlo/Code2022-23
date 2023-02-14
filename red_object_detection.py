@@ -144,7 +144,7 @@ def red_detection():
 
 				return box
 			
-			return null
+			return None
 				
 				# draw detection rectangles
 				#cv.drawContours(added_img, [box], 0, (0,255,0), 1)
