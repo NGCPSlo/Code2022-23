@@ -138,10 +138,14 @@ def red_detection():
 
 				# for contours greater than 500
 				#	create recatngular box
-				#rect = cv.minAreaRect(c)
-				#box = cv.boxPoints(rect)
-				#box = np.int0(box)
+				rect = cv.minAreaRect(c)
+				box = cv.boxPoints(rect)
+				box = np.int0(box)
 
+				return box
+			
+			return null
+				
 				# draw detection rectangles
 				#cv.drawContours(added_img, [box], 0, (0,255,0), 1)
 
