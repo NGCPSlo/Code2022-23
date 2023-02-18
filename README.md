@@ -4,6 +4,7 @@
 - Python 3.11
 - QGroundControl
 
+## Directions
 1. Open up drone_client.py in your IDE
 	a. Pull NGCPSlo / Code2022-23 repository from GitHub.
 2. Open up command prompt
