@@ -33,19 +33,21 @@ command_evac = '{"evacuation_coordinates":{"lat":33.9,"lng":-117.6}}'
 while(1):
     if (keyboard.read_key() == "g"):
         message = command_geo
-    if (keyboard.read_key() == "s"):
+    elif (keyboard.read_key() == "s"):
         message = command_search
-    if (keyboard.read_key() == "h"):
+    elif (keyboard.read_key() == "h"):
         message = command_home
-    if (keyboard.read_key() == "d"):
+    elif (keyboard.read_key() == "d"):
         message = command_drop
-    if (keyboard.read_key() == "e"):
+    elif (keyboard.read_key() == "e"):
         message = command_evac
+    else:
+        message = ""
 
 
 
 #time.sleep(d)
 #publish message
-    ret = client.publish("/data",message)
-    print(message)
+    if(len(message) > 0):
+        ret = client.publish("/data",message)
 print("Stopped...")
