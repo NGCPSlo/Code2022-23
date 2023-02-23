@@ -32,7 +32,7 @@ HSV_HIGH = [255, 255, 255]
 #cv.createTrackbar('hsv_high_h','Track', 180, 180, callback)
 #cv.createTrackbar('hsv_high_v','Track', 15, 255, callback)
 #cv.createTrackbar('hsv_high_s','Track', 15, 255, callback)
-class vision:
+class Vision:
 	def __init__(self):
 		# Create pipeline
 		self.pipeline = dai.Pipeline()
