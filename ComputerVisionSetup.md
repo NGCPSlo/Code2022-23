@@ -22,4 +22,4 @@
 ModuleNotFoundError: No module named 'cv2'
 
 ### solution:
-    - do python ./filename.py Don’t run the code with the given run button on VScode
+- do python ./filename.py Don’t run the code with the given run button on VScode
