@@ -16,28 +16,6 @@ ASPECT_LOWER = 0.8
 BUFFER_SIZE = 13 # Increasing Buffer improves accuracy, but uses memory
 
 
-#def setHSV_LOW(val, index):
-#	HSV_LOW[index] = val
-#def setHSV_HGIH(val, index):
-#	HSV_HIGH[index] = val
-
-#def callback(x):
-#    #assign trackbar position value to H,S,V High and low variable
-#    HSV_LOW[0] = cv.getTrackbarPos('hsv_low_h','Track')
-#    HSV_LOW[1] = cv.getTrackbarPos('hsv_low_v','Track')
-#    HSV_LOW[2] = cv.getTrackbarPos('hsv_low_s','Track')
-#    HSV_HIGH[0] = cv.getTrackbarPos('hsv_high_h','Track')
-#    HSV_HIGH[1] = cv.getTrackbarPos('hsv_high_s','Track')
-#    HSV_HIGH[2] = cv.getTrackbarPos('hsv_high_v','Track')
-
-#cv.namedWindow("Track", cv.WINDOW_NORMAL)
-#cv.createTrackbar('hsv_low_h','Track', 160, 180, callback)
-#cv.createTrackbar('hsv_low_v','Track', 100, 255, callback)
-#cv.createTrackbar('hsv_low_s','Track', 50, 255, callback)
-#cv.createTrackbar('hsv_high_h','Track', 180, 180, callback)
-#cv.createTrackbar('hsv_high_v','Track', 15, 255, callback)
-#cv.createTrackbar('hsv_high_s','Track', 15, 255, callback)
-
 class Vision:
 	def __init__(self):
 		# Create pipeline
