@@ -3,7 +3,7 @@ import time
 import threading
 from drone_client import DroneClient
 import Stepper
-from red_object_detection import red_detection
+from dai_red_object_detection import Vision
 
 
 #MultiThread Updates for GCS :)
@@ -73,6 +73,8 @@ evac_servo = Stepper(RPM, EVAC_PIN1, EVAC_PIN2, EVAC_PIN3, EVAC_PIN4)
 
 ug = RepeatedTimer(1, update_gcs, update)
 
+fire_detector = Vision()
+
 while(mission):
     #check for command message, using test command for now
     command = {"argType": "Evac", "lat": 35.300614, "long": -120.663356, "alt": current_height}
@@ -92,10 +94,10 @@ while(mission):
     if (command.argType == "Fire"):
         drone.flyToCords(command.lat, command.lon, command.alt)
         # Identify and Extinguish Fire
-        box = red_detection()
+        box = fire_detector.red_detection()
         # Wait for object to be detected
         while box == None:
-            box = red_detection()
+            box = fire_detector.red_detection()
         # Call Fire Servo, starts in relaxed state
         fire_servo.step(FIRE_SQUEEZE)   # squeeze fire extinguisher
         time.sleep(FIRE_WAIT)                  # 7-15 seconds for exhuast
