@@ -1,6 +1,7 @@
+import json
 import time
 import threading
-import drone_client.py
+from drone_client import DroneClient
 import Stepper
 from red_object_detection import red_detection
 
@@ -61,7 +62,7 @@ current_height = TAKEOFF_HEIGHT
 mission = True
 command = None
 
-drone = DroneClient("/dev/ttyS0", 57600)
+drone = DroneClient("/dev/ttyTHS0", 57600)
 drone.connect()
 #drone.setGeoFence()
 drone.armVehicle()
@@ -73,7 +74,7 @@ evac_servo = Stepper(RPM, EVAC_PIN1, EVAC_PIN2, EVAC_PIN3, EVAC_PIN4)
 ug = RepeatedTimer(1, update_gcs, update)
 
 while(mission):
-    #check for command message
+    #check for command message, using test command for now
     command = {"argType": "Evac", "lat": 35.300614, "long": -120.663356, "alt": current_height}
 
     # If not command received, update GCS and continue
@@ -82,23 +83,23 @@ while(mission):
         continue
 
     # Parse command received
-    match (command.argType):
-        case "Evac":
-            drone.flyToCords(command.lat, command.lon, command.alt)
-            # Call Winch Servo, start it up state
-            evac_servo.step(EVAC_RELEASE)   # release the winch, CCW
-            time.sleep(PAYLOAD_WAIT)                 # wait for payload
-            evac.servo(EVAC_RETURN)         # return the winch, CW
-        case "Fire":
-            drone.flyToCords(command.lat, command.lon, command.alt)
-            # Identify and Extinguish Fire
-            while ((box = red_detection()) == None):
-                # Wait for object to be detected
-            # Call Fire Servo, starts in relaxed state
-            fire_servo.step(FIRE_SQUEEZE)   # squeeze fire extinguisher
-            time.sleep(FIRE_WAIT)                  # 7-15 seconds for exhuast
-            fire_servo.step(FIRE_RELAX)     # relax fire extinguisher
-
+    if (command.argType == "Evac"):
+        drone.flyToCords(command.lat, command.lon, command.alt)
+        # Call Winch Servo, start it up state
+        evac_servo.step(EVAC_RELEASE)   # release the winch, CCW
+        time.sleep(PAYLOAD_WAIT)                 # wait for payload
+        evac_servo.step(EVAC_RETURN)         # return the winch, CW
+    if (command.argType == "Fire"):
+        drone.flyToCords(command.lat, command.lon, command.alt)
+        # Identify and Extinguish Fire
+        box = red_detection()
+        # Wait for object to be detected
+        while box == None:
+            box = red_detection()
+        # Call Fire Servo, starts in relaxed state
+        fire_servo.step(FIRE_SQUEEZE)   # squeeze fire extinguisher
+        time.sleep(FIRE_WAIT)                  # 7-15 seconds for exhuast
+        fire_servo.step(FIRE_RELAX)     # relax fire extinguisher
     # GCS is Always Updating
 
 #Land Home / "Return to Launch &/or Home"

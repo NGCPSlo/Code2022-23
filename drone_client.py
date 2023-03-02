@@ -9,30 +9,38 @@ try:
 except:
     pass
 
-from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative
+from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative, Command, mavutil
+
 
 class DroneClient:
-    def __init__(self, connectionStr: str =  "/dev/ttyS0") -> None:
-        
+    def __init__(self, connectionStr: str = "/dev/ttyTHS0", baud: int = None) -> None:
+
         self.connectionStr = connectionStr
+        self.baud = baud
         self.vehicle = None
-        
-    def connect(self, baud: int = 57600):
+
+    def connect(self):
         '''
-        Connects to vehicle and blocks until it is ready
+        Connects to vehicle and blocks until it is ready. Waits until vehicle is ready.
         '''
         print("Connecting to vehicle on: %s" % (self.connectionStr,))
-        self.vehicle = connect(self.connectionStr, wait_ready=False,)
-        self.vehicle.wait_ready(True, raise_exception=False)
-    
+        while True:
+            try:
+                self.vehicle = connect(
+                    self.connectionStr, wait_ready=False, baud=self.baud)
+                self.vehicle.wait_ready(True, raise_exception=False)
+                break
+            except:
+                pass
+
     def armVehicle(self):
         """
-        Ensures vehicle is ready to arm and arms it.
+        Ensures vehicle is ready to arm and arms it. Blocks until vehicle is armed.
         """
 
         if self.vehicle == None:
-            raise Exception("Vehicle not connected")
-        
+            self.connect()
+
         # Waits until drone is armable
         while not self.vehicle.is_armable:
             print(" Waiting until armable...")
@@ -40,10 +48,10 @@ class DroneClient:
 
         # Sets the drone mode to guided, blocks until complete
         print("Arming the vehicle")
-        self.vehicle.mode =  VehicleMode("GUIDED")
+        self.vehicle.mode = VehicleMode("GUIDED")
         while self.vehicle.mode.name != "GUIDED":
             time.sleep(1)
-        
+
         # Set vehicle to armed and blocks until it is
 
         self.vehicle.armed = True
@@ -51,20 +59,21 @@ class DroneClient:
             print(" Waiting for arming...")
             time.sleep(1)
 
-    def takeoff(self,heightInM):
+    def takeoff(self, heightInM):
+        print("Taking off the vehicle")
         self.vehicle.simple_takeoff(alt=heightInM)
         # Delay until takeoff height is reached
-        while self.vehicle.mode.name=="GUIDED":
+        while self.vehicle.mode.name == "GUIDED":
             print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
-            # Within 5% of target altitude or within 1m 
-            if self.vehicle.location.global_relative_frame.alt>=heightInM*0.95 or\
-             abs(self.vehicle.location.global_relative_frame.alt-heightInM) < 1:
+            # Within 5% of target altitude or within 1m
+            if self.vehicle.location.global_relative_frame.alt >= heightInM*0.95 or\
+                    abs(self.vehicle.location.global_relative_frame.alt-heightInM) < 1:
                 print("Reached target altitude")
                 break
             time.sleep(1)
-    
-    
-    #* get_location_metres - Get LocationGlobal (decimal degrees) at distance (m) North & East of a given LocationGlobal.
+
+    # * get_location_metres - Get LocationGlobal (decimal degrees) at distance (m) North & East of a given LocationGlobal.
+
     def get_location_metres(self, original_location, dNorth, dEast):
         """
         Returns a LocationGlobal object containing the latitude/longitude `dNorth` and `dEast` metres from the 
@@ -79,24 +88,26 @@ class DroneClient:
         For more information see:
         http://gis.stackexchange.com/questions/2951/algorithm-for-offsetting-a-latitude-longitude-by-some-amount-of-meters
         """
-        earth_radius = 6378137.0 #Radius of "spherical" earth
-        #Coordinate offsets in radians
+        earth_radius = 6378137.0  # Radius of "spherical" earth
+        # Coordinate offsets in radians
         dLat = dNorth/earth_radius
         dLon = dEast/(earth_radius*math.cos(math.pi*original_location.lat/180))
 
-        #New position in decimal degrees
+        # New position in decimal degrees
         newlat = original_location.lat + (dLat * 180/math.pi)
         newlon = original_location.lon + (dLon * 180/math.pi)
         if type(original_location) is LocationGlobal:
-            targetlocation=LocationGlobal(newlat, newlon,original_location.alt)
+            targetlocation = LocationGlobal(
+                newlat, newlon, original_location.alt)
         elif type(original_location) is LocationGlobalRelative:
-            targetlocation=LocationGlobalRelative(newlat, newlon,original_location.alt)
+            targetlocation = LocationGlobalRelative(
+                newlat, newlon, original_location.alt)
         else:
             raise Exception("Invalid Location object passed")
-            
+
         return targetlocation
 
-    #* get_distance_metres - Get the distance between two LocationGlobal objects in metres
+    # * get_distance_metres - Get the distance between two LocationGlobal objects in metres
     def get_distance_metres(self, aLocation1, aLocation2):
         """
         Returns the ground distance in metres between two LocationGlobal objects.
@@ -109,7 +120,7 @@ class DroneClient:
         dlong = aLocation2.lon - aLocation1.lon
         return math.sqrt((dlat*dlat) + (dlong*dlong)) * 1.113195e5
 
-    #* get_bearing - Get the bearing in degrees to a LocationGlobal
+    # * get_bearing - Get the bearing in degrees to a LocationGlobal
     def get_bearing(self, aLocation1, aLocation2):
         """
         Returns the bearing between the two LocationGlobal objects passed as parameters.
@@ -117,7 +128,7 @@ class DroneClient:
         This method is an approximation, and may not be accurate over large distances and close to the 
         earth's poles. It comes from the ArduPilot test code: 
         https://github.com/diydrones/ardupilot/blob/master/Tools/autotest/common.py
-        """	
+        """
         off_x = aLocation2.lon - aLocation1.lon
         off_y = aLocation2.lat - aLocation1.lat
         bearing = 90.00 + math.atan2(-off_y, off_x) * 57.2957795
@@ -125,22 +136,32 @@ class DroneClient:
             bearing += 360.00
         return bearing
 
-    def flyToMeters(self, dNorth, dEast, gotoFunction = None):
+    def getCoords(self):
+        return self.vehicle.location.global_relative_frame
+        
+
+    def flyToMeters(self, dNorth, dEast, gotoFunction=None):
         """
         Takes in Cartesian coordinates in meters as a target to fly to. 
         Then flies the vehicle to the target location, stopping once the target has been reached.
+        Function blocks until target is reached.
         """
-        currentLocation=self.vehicle.location.global_relative_frame
-        targetLocation=self.get_location_metres(currentLocation, dNorth, dEast)
-        targetDistance=self.get_distance_metres(currentLocation, targetLocation)
-        if(gotoFunction == None):
+        currentLocation = self.vehicle.location.global_relative_frame
+        targetLocation = self.get_location_metres(
+            currentLocation, dNorth, dEast)
+        targetDistance = self.get_distance_metres(
+            currentLocation, targetLocation)
+        if (gotoFunction == None):
             gotoFunction = self.vehicle.simple_goto
         gotoFunction(targetLocation)
 
-        while self.vehicle.mode.name=="GUIDED": #Stop action if we are no longer in guided mode.
-            remainingDistance=self.get_distance_metres(self.vehicle.location.global_frame, targetLocation)
+        # Stop action if we are no longer in guided mode.
+        while self.vehicle.mode.name == "GUIDED":
+            remainingDistance = self.get_distance_metres(
+                self.vehicle.location.global_frame, targetLocation)
             print("Distance to target: ", remainingDistance)
-            if remainingDistance<=max(targetDistance*0.01, 1): #Just below target, in case of undershoot.
+            # Just below target, in case of undershoot.
+            if remainingDistance <= max(targetDistance*0.01, 1):
                 print("Reached target")
                 break
             time.sleep(1)
@@ -155,36 +176,81 @@ class DroneClient:
         print(" Is Armable?: %s" % vehicle.is_armable)
         print(" System status: %s" % vehicle.system_status.state)
         print(" Mode: %s" % vehicle.mode.name)    # settable
-        print(" Location: %s" % vehicle.location.global_frame)  
+        print(" Location: %s" % vehicle.location.global_frame)
 
     def goHome(self):
         self.vehicle.mode("RTL")
 
-    def flyToCords(self, lat:float, lon: float, alt: float = None):
+    def flyToCords(self, lat: float, lon: float, alt: float = None):
         '''
         Sets vehicle target destination to a set of coordinates and blocks until destination reached
         '''
-        startLocation=self.vehicle.location.global_relative_frame
+        startLocation = self.vehicle.location.global_relative_frame
         targetLocation = LocationGlobalRelative(lat, lon, alt)
         self.vehicle.simple_goto(targetLocation)
 
-        targetDistance=self.get_distance_metres(startLocation, targetLocation)
+        targetDistance = self.get_distance_metres(
+            startLocation, targetLocation)
 
-        while self.vehicle.mode.name=="GUIDED": #Stop action if we are no longer in guided mode.
-            remainingDistance=self.get_distance_metres(self.vehicle.location.global_frame, targetLocation)
+        # Stop action if we are no longer in guided mode.
+        while self.vehicle.mode.name == "GUIDED":
+            remainingDistance = self.get_distance_metres(
+                self.vehicle.location.global_frame, targetLocation)
             print("Distance to target: ", remainingDistance)
-            #Block until 1% of target distance is reached or within 1m
-            if remainingDistance<=max(targetDistance*0.01, 1): 
+            # Block until 1% of target distance is reached or within 1m
+            if remainingDistance <= max(targetDistance*0.01, 1):
                 print("Reached target")
                 break
             time.sleep(1)
 
+    def setGeoFence(self, coordsList: list[tuple[int, int]]):
+        # MAV_CMD_DO_FENCE_ENABLE
+        # MAV_CMD_NAV_FENCE_POLYGON_VERTEX_INCLUSION
+        print("Setting geofence")
+        self.vehicle.parameters["FENCE_ENABLE"] = 0  # disable
+        self.vehicle.parameters["FENCE_TYPE"] = 2  # polygon
+        self.vehicle.parameters["FENCE_ACTION"] = 0  # fence action report
+        self.vehicle.parameters["FENCE_TOTAL"] = len(coordsList)  # enable
+        for index, coord in enumerate(coordsList):
+            lat = coord[0]
+            lng = coord[1]
+            print(lat,lng)
 
+            msg = self.vehicle.message_factory.command_long_encode(
+                    0,
+                    0,
+                    mavutil.mavlink.MAV_CMD_NAV_FENCE_POLYGON_VERTEX_INCLUSION, 0,
+                    len(coordsList), 
+                    1, 
+                    0, 
+                    0, 
+                    lat,
+                    lng, 
+                    0)
+            print("Uploading geofence vertex")
+            self.vehicle.send_mavlink(msg)
+        self.vehicle.parameters["FENCE_ENABLE"] = 1  # enable
+        print("Complete")
+
+# Example usage w/ simulation
 if __name__ == '__main__':
-  drone = DroneClient()
-  drone.connect()
-  drone.armVehicle()
-  drone.takeoff(20)
+    # testGeoFence = [
+    #     (30, -47),
+    #     (30, -48),
+    #     (30, -47.5)
+    # ]
+    drone = DroneClient(connectionStr="udp:localhost:14551")
+    drone.connect()
+    # drone.setGeoFence(testGeoFence)
+    drone.armVehicle()
+    drone.takeoff(20)
+    fence_points = int(drone.vehicle.parameters["FENCE_TOTAL"])
+    print(fence_points)
+    for i in range(fence_points):
+        msg = drone.vehicle.message_factory.fence_fetch_point_encode(
+                0, 0,  # Target System, Target component
+                i,   # idx
+        )
+        drone.vehicle.send_mavlink(msg)
 
 
-  pass
