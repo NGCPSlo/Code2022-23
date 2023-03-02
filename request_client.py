@@ -5,8 +5,14 @@ import time
 #import paho.mqtt
 import constants
 import requests
-
+import argparse
+import random
 #send
+
+
+#to do
+# write code that retrieves coordinates from pixhawk and parses it
+# write more refined send code
 
 def post(gcs_send: string, type_msg: string, status: string):
     """
@@ -28,16 +34,32 @@ def request(GCS_msg: string):
     elif response.status_code == 404:
         print('Not Found')
 
+def connect(ip_address: str = '127.0.0.1'):
+    #parsing connection information recieved from GCS(hardcoded/ given by GCS)
+    if ip_address == None:
+        ip_address = '127.0.0.1'
+    on_message(ip_address)
+        
+        
 # Callback function to be called whenever the MEA receives a message from GCS
-def on_message(response):
+def on_message(ip_address: str):
     """
-    Parse messages recieved from JSON
+    Parse messages recieved from GCS
     """
-    json_response = response.json()
-    x = json_response['search_area']
-    y = json_response['home_coordinates']
-    z = json_response['drop_coordinates']
-    a = json_response['geofence']
+    search_area = requests.get(f"http://{ip_address}:5000/getsearch/MEA")
+    home_cords = requests.get(f"http://{ip_address}:5000/gethomecords/MEA")
+    drop_cords = requests.get(f"http://{ip_address}:5000/getdropcords/MEA")
+    geofence = requests.get(f"http://{ip_address}:5000/getGeofence/MEA")
+
+    x = search_area.json()
+    y = home_cords.json()
+    z  = drop_cords.json()
+    a  = geofence.json()
+
+    # x = json_response['search_area']
+    # y = json_response['home_coordinates']
+    # z = json_response['drop_coordinates']
+    # a = json_response['geofence']
     
     # search_area array with 3 objects holding lng and lat
     if x != None:
@@ -91,11 +113,38 @@ def on_message(response):
         print("lat_1", geo_lat_1_f, "long_1", geo_lng_1_f)
         print("lat_2", geo_lat_2_f, "long_2", geo_lng_2_f)
 
-    # # Publishes a message to the MQTT service
-    # def send(self, message: str, timeout: int = None):
-    #     msgInfo: mqtt_client.MQTTMessageInfo = self.client.publish(
-    #         self.topic, message, qos=2)
-    #     msgInfo.wait_for_publish(timeout)
+
+def send_cords(ip_address: str, msg_type: str, cords: str):
+    #sends coordinate information to GCS
+    request_body = {
+        {msg_type}: [
+        {
+            "coordinates": [
+            {
+                "lat": cords[0][0],
+                "lng": cords[0][1]
+            },
+            {
+                "lat": cords[1][0],
+                "lng":cords[1][1]
+            },
+            {
+                "lat": cords[2][0],
+                "lng": cords[2][1]
+            },
+            ],
+        }
+        ]
+    }    
+    # POST updated search area coords onto the database. 
+    #sends information to GCS 
+    try:
+        response = requests.post(f"http://{ip_address}:5000/post{msg_type}/MEA", json=request_body)
+    except requests.exceptions.JSONDecodeError:
+        print("JSONDecodeError: cannot return response body at this time")
+    # Cool down period of 0.5 seconds
+    time.sleep(0.5)
+    
 
 # def on_connect(client: mqtt_client.Client, userdata, flags: dict[str, int], rc: int):
 #     if (rc == 0):
