@@ -153,49 +153,36 @@ class Vision:
 					count += 1
 
 					# draw detection rectangles
-					cv.drawContours(added_img, [box], 0, (0,255,0), 1)
+					# cv.drawContours(added_img, [box], 0, (0,255,0), 1)
 
 				# display image with detection boxes
-				cv.namedWindow('Contours', cv.WINDOW_NORMAL)
-				cv.imshow('Contours', added_img)
-
+				# cv.namedWindow('Contours', cv.WINDOW_NORMAL)
+				# cv.imshow('Contours', added_img)
 
 				if (count >= BUFFER_SIZE):
 					avg_aspect = aspect_sum / BUFFER_SIZE
 					print(avg_aspect)
 
 					if (avg_aspect <= ASPECT_UPPER) or (avg_aspect >= ASPECT_LOWER):
-						return img_buf
+						average_box = {"Aspect": 0, "Center": [0,0]}
+						boxes = []
+						for i in img_buf:
+							boxes.append(i["Box"])
+							average_box["Aspect"] += i["Aspect"]
+							average_box["Center"][0] += i["Center"][0]
+							average_box["Center"][1] += i["Center"][1]
+						
+						print(boxes)
+						average_box["Box"] = np.average(boxes, axis = 0)
+						average_box["Box"] = np.asarray(average_box["Box"], dtype="int")
+						average_box["Aspect"] /= count
+						average_box["Center"][0] /= count
+						average_box["Center"][1] /= count
+						return average_box
 
 					old_data = img_buf.popleft()
 					aspect_sum -= old_data["Aspect"] 					
 					count -= 1
-
-
-
-
-
-
-
-
-
-				#create resizable windows for the images
-				#cv.namedWindow("res", cv.WINDOW_NORMAL)
-				#cv.namedWindow("hsv", cv.WINDOW_NORMAL)
-				#cv.namedWindow("mask", cv.WINDOW_NORMAL)
-				#cv.namedWindow("added", cv.WINDOW_NORMAL)
-				#cv.namedWindow("back", cv.WINDOW_NORMAL)
-				#cv.namedWindow("mask_inv", cv.WINDOW_NORMAL)
-				#cv.namedWindow("gray", cv.WINDOW_NORMAL)
-
-				#display the images
-				#cv.imshow("back", background)
-				#cv.imshow("mask_inv", mask_inv)
-				#cv.imshow("added",added_img)
-				#cv.imshow("mask", mask)
-				#cv.imshow("gray", gray)
-				#cv.imshow("hsv", hsv)
-				#cv.imshow("res", res)
 
 				# on kjey 'q' stop
 				if cv.waitKey(1) & 0xFF == ord('q'):
@@ -204,8 +191,8 @@ class Vision:
 			# destroy them windows
 			cv.destroyAllWindows()
 
-
-detector = Vision()
-detection = detector.red_detection()
-print("Detection")
-print(detection)
+if __name__ == '__main__':
+	detector = Vision()
+	detection = detector.red_detection()
+	print("Detection")
+	print(detection)
