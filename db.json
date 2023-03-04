@@ -20,16 +20,16 @@
     {
       "coordinates": [
         {
-          "lat": 0,
-          "lng": 0
+          "lat": 42,
+          "lng": 25
         },
         {
-          "lat": 0,
-          "lng": 0
+          "lat": 13,
+          "lng": 19
         },
         {
-          "lat": 0,
-          "lng": 0
+          "lat": 10,
+          "lng": 34
         }
       ],
       "keep_in": true
@@ -37,16 +37,16 @@
     {
       "coordinates": [
         {
-          "lat": 0,
-          "lng": 0
+          "lat": 7,
+          "lng": 11
         },
         {
-          "lat": 0,
-          "lng": 0
+          "lat": 17,
+          "lng": 13
         },
         {
-          "lat": 0,
-          "lng": 0
+          "lat": 21,
+          "lng": 38
         }
       ],
       "keep_in": false
@@ -55,5 +55,20 @@
   "evacuation_coordinates": {
     "lat": 33.934071708659815,
     "lng": -117.63107658822175
-  }
+  },
+  "search_area": [
+    {
+      "lng": 12,
+      "lat": 14
+    },
+    {
+      "lng": 1,
+      "lat": 3
+    },
+    {
+      "lng": 5,
+      "lat": 17
+    }
+  ]
+
 }
