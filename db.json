@@ -1,0 +1,59 @@
+{
+  "home_coordinates": {
+    "1": {
+      "vehicle": "MAC",
+      "lat": 33.93368449228065,
+      "lng": -117.63028265435334
+    },
+    "2": {
+      "vehicle": "MEA",
+      "lat": 33.934454472545525,
+      "lng": -117.63246060807343
+    },
+    "3": {
+      "vehicle": "ERU",
+      "lat": 33.93368449228065,
+      "lng": -117.63077618081208
+    }
+  },
+  "geofence": [
+    {
+      "coordinates": [
+        {
+          "lat": 0,
+          "lng": 0
+        },
+        {
+          "lat": 0,
+          "lng": 0
+        },
+        {
+          "lat": 0,
+          "lng": 0
+        }
+      ],
+      "keep_in": true
+    },
+    {
+      "coordinates": [
+        {
+          "lat": 0,
+          "lng": 0
+        },
+        {
+          "lat": 0,
+          "lng": 0
+        },
+        {
+          "lat": 0,
+          "lng": 0
+        }
+      ],
+      "keep_in": false
+    }
+  ],
+  "evacuation_coordinates": {
+    "lat": 33.934071708659815,
+    "lng": -117.63107658822175
+  }
+}
