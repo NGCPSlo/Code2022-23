@@ -24,14 +24,8 @@ class DroneClient:
         Connects to vehicle and blocks until it is ready. Waits until vehicle is ready.
         '''
         print("Connecting to vehicle on: %s" % (self.connectionStr,))
-        while True:
-            try:
-                self.vehicle = connect(
-                    self.connectionStr, wait_ready=False, baud=self.baud)
-                self.vehicle.wait_ready(True, raise_exception=False)
-                break
-            except:
-                pass
+        self.vehicle = connect(
+            self.connectionStr, wait_ready=True, baud=self.baud, heartbeat_timeout=120)
 
     def armVehicle(self):
         """
