@@ -6,9 +6,16 @@ import requests
 import argparse
 import random
 import socket
+from flask import Flask, jsonify
 
 ip_address = 'localhost'  # The server's hostname or IP address
 PORT = 3000         # The port used by the server
+
+#status: 
+#want to recieve data from GCS at any time, create a flask server on client
+#requesting content from GCS
+#dealing with post request
+
 
 
 #code to write
@@ -246,23 +253,21 @@ def on_message_mod(requested: str, port: int):
 #         print("lat_2", geo_lat_2_f, "long_2", geo_lng_2_f)
 #         print(" ")
 
-
 def send_cords(ip_address: str, msg_type: str, cords: str, port: int):
     #sends coordinate information to GCS
-    print("inside")
     request_body = {
         msg_type: [
             {
-                "lng": cords[0][0],
-                "lat": cords[0][1]
+                "lat": cords[0][0],
+                "lng": cords[0][1]
             },
             {
-                "lng": cords[1][0],
-                "lat":cords[1][1]
+                "lat": cords[1][0],
+                "lng":cords[1][1]
             },
             {
-                "lng": cords[2][0],
-                "lat": cords[2][1]
+                "lat": cords[2][0],
+                "lng": cords[2][1]
             }
         ]
     }    
@@ -285,7 +290,7 @@ def main():
     #on_message_mod("search", port)
     # on_message_mod("evac", port)
     # on_message_mod("home", port)
-    send_cords(ip_address, "current_location", cords, port)
+    send_cords(ip_address, "postSearchArea", cords, port)
 if __name__ == '__main__':
     main()
     # while (True):

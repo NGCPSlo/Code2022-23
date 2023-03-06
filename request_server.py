@@ -1,5 +1,5 @@
 import json
-from flask import Flask, jsonify
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
@@ -15,6 +15,16 @@ def getSearch():
         datavalue = json.load(jsonfile)
         return json.dumps(datavalue.get("search_area", ""))
 
+@app.route('/postSearchArea', methods=['POST'])
+def post_search_area():
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
+        search_area_coordinates = request.json
+        with open("db.json", 'w') as jsonfile:
+            json.dump(search_area_coordinates, jsonfile)
+            #jsonfile.insert(search_area_coordinates)
+    # return jsonify(response_object)
+
 @app.route('/home_coordinates', methods=['GET'])
 def getHome():
     with open("db.json") as jsonfile:
@@ -26,6 +36,8 @@ def getEvac():
     with open("db.json") as jsonfile:
         datavalue = json.load(jsonfile)
         return json.dumps(datavalue.get("evacuation_coordinates", ""))
+
+
 
 # def connect():
 #     host = socket.gethostname()
