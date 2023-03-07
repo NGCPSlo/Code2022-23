@@ -15,7 +15,8 @@ PORT = 3000         # The port used by the server
 #want to recieve data from GCS at any time, create a flask server on client
 #requesting content from GCS
 #dealing with post request
-
+#sending data back
+#if value changes, then parse then
 
 
 #code to write
@@ -166,110 +167,43 @@ def on_message_mod(requested: str, port: int):
         print("either send was requested or error")
 
 
+# def send_cords(ip_address: str, msg_type: str, cords: str, port: int):
+#     #sends coordinate information to GCS
+#     request_body = {
+#         msg_type: [
+#             {
+#                 "lat": cords[0][0],
+#                 "lng": cords[0][1]
+#             },
+#             {
+#                 "lat": cords[1][0],
+#                 "lng":cords[1][1]
+#             },
+#             {
+#                 "lat": cords[2][0],
+#                 "lng": cords[2][1]
+#             }
+#         ]
+#     }    
+#     # POST updated search area coords onto the database. 
+#     #sends information to GCS 
+#     try:
+#         #requests.post(f"http://{ip_address}:{port}/post{msg_type}", json=request_body)
+#         requests.post(f"http://{ip_address}:{port}/{msg_type}", json=request_body)
+#     except requests.exceptions.JSONDecodeError:
+#         print("JSONDecodeError: cannot return response body at this time")
+#     # Cool down period of 0.5 seconds
+#     time.sleep(0.5)
 
-
-
-
-
-
-# # Callback function to be called whenever the MEA receives a message from GCS
-# def on_message(ip_address: str):
-#     """
-#     Parse messages recieved from GCS
-#     """
-#     # search_area = requests.get(f"http://{ip_address}:5000/getsearch/MEA")
-#     # home_cords = requests.get(f"http://{ip_address}:5000/gethomecords/MEA")
-#     # drop_cords = requests.get(f"http://{ip_address}:5000/getdropcords/MEA")
-#     # geofence = requests.get(f"http://{ip_address}:5000/getGeofence/MEA")
-
-#     #retrieving content straight from the database
-#     search_area = requests.get(f"http://{ip_address}:3000/search_area")
-#     home_cords = requests.get(f"http://{ip_address}:3000/home_coordinates")
-#     evac_cords = requests.get(f"http://{ip_address}:3000/evacuation_coordinates")
-#     geofence = requests.get(f"http://{ip_address}:3000/geofence")
-
-
-#     x = search_area.json()
-#     y = home_cords.json()
-#     z  = evac_cords.json()
-#     a  = geofence.json()
-    
-#     # search_area array with 3 objects holding lng and lat
-#     if x != {}:
-#         search_lat_0 = x[0]["lat"]
-#         search_long_0 = x[0]["lng"]
-#         search_lat_1 = x[1]["lat"]
-#         search_long_1 = x[1]["lng"]
-#         search_lat_2 = x[2]["lat"]
-#         search_long_2 = x[2]["lng"]
-        
-#         print("x", x)
-#         print("lat_0", search_lat_0, "long_0", search_long_0)
-#         print("lat_1", search_lat_1, "long_1", search_long_1)
-#         print("lat_2", search_lat_2, "long_2", search_long_2)
-#         print(" ")
-#     # home_coordinates
-#     # assuming "4" is vehicle: MEDEVAC
-#     if y != {}:
-#         home_lat = y['2']["lat"]
-#         home_long = y['2']["lng"]
-#         print("y", y)
-#         print("home_lat", home_lat, "home_long", home_long)
-#         print(" ")
-    
-#     # drop_coordinates
-#     if z != {}:
-#         print("z", z)
-#         drop_lat = z["lat"]
-#         drop_long = z["lng"]
-#         print("drop_lat", drop_lat, "drop_long", drop_long)
-#         print(" ")
-
-#     if a != {}:
-#         # keep_in: true
-#         geo_lat_0_t = a[0]["coordinates"][0]["lat"]
-#         geo_lng_0_t = a[0]["coordinates"][0]["lng"]
-#         geo_lat_1_t = a[0]["coordinates"][1]["lat"]
-#         geo_lng_1_t = a[0]["coordinates"][1]["lng"]
-#         geo_lat_2_t = a[0]["coordinates"][2]["lat"]
-#         geo_lng_2_t = a[0]["coordinates"][2]["lng"]
-
-#         print("a", a)
-#         print("lat_0", geo_lat_0_t, "long_0", geo_lng_0_t)
-#         print("lat_1", geo_lat_1_t, "long_1", geo_lng_1_t)
-#         print("lat_2", geo_lat_2_t, "long_2", geo_lng_2_t)
-
-#         # keep_in: false
-#         geo_lat_0_f = a[1]["coordinates"][0]["lat"]
-#         geo_lng_0_f = a[1]["coordinates"][0]["lng"]
-#         geo_lat_1_f = a[1]["coordinates"][1]["lat"]
-#         geo_lng_1_f = a[1]["coordinates"][1]["lng"]
-#         geo_lat_2_f = a[1]["coordinates"][2]["lat"]
-#         geo_lng_2_f = a[1]["coordinates"][2]["lng"]
-
-#         print(a[1])
-#         print("lat_0", geo_lat_0_f, "long_0", geo_lng_0_f)
-#         print("lat_1", geo_lat_1_f, "long_1", geo_lng_1_f)
-#         print("lat_2", geo_lat_2_f, "long_2", geo_lng_2_f)
-#         print(" ")
 
 def send_cords(ip_address: str, msg_type: str, cords: str, port: int):
     #sends coordinate information to GCS
     request_body = {
-        msg_type: [
+        msg_type: 
             {
                 "lat": cords[0][0],
                 "lng": cords[0][1]
-            },
-            {
-                "lat": cords[1][0],
-                "lng":cords[1][1]
-            },
-            {
-                "lat": cords[2][0],
-                "lng": cords[2][1]
             }
-        ]
     }    
     # POST updated search area coords onto the database. 
     #sends information to GCS 
@@ -282,15 +216,30 @@ def send_cords(ip_address: str, msg_type: str, cords: str, port: int):
     time.sleep(0.5)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def main():
     cords = [[25, 10], [15,4], [11, 12]] #test current locations
     ip_address = 'localhost'
     port = 5000
     # on_message_mod("geo", port)
-    #on_message_mod("search", port)
+    # on_message_mod("search", port)
     # on_message_mod("evac", port)
     # on_message_mod("home", port)
-    send_cords(ip_address, "postSearchArea", cords, port)
+    #send_cords(ip_address, "postSearchArea", cords, port)
+    send_cords(ip_address, "post_current", cords, port)
 if __name__ == '__main__':
     main()
     # while (True):

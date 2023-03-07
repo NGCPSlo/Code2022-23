@@ -15,13 +15,34 @@ def getSearch():
         datavalue = json.load(jsonfile)
         return json.dumps(datavalue.get("search_area", ""))
 
-@app.route('/postSearchArea', methods=['POST'])
-def post_search_area():
+# @app.route('/postSearchArea', methods=['POST'])
+# def post_search_area():
+#     response_object = {'status': 'success'}
+#     if request.method == 'POST':
+#         search_area_coordinates = request.json
+#         print(search_area_coordinates)
+#         return
+#         #with open("db.json", 'w') as jsonfile:
+#             #json.dump(search_area_coordinates, jsonfile)
+#             #jsonfile.insert(search_area_coordinates)
+#     # return jsonify(response_object)
+    
+    
+@app.route('/post_current', methods=['POST'])
+def post_current():
     response_object = {'status': 'success'}
     if request.method == 'POST':
-        search_area_coordinates = request.json
-        with open("db.json", 'w') as jsonfile:
-            json.dump(search_area_coordinates, jsonfile)
+        search_area_coordinates = request.json['post_current']
+        lat = search_area_coordinates['lat']
+        lng = search_area_coordinates['lng']
+        
+        print("current_location")
+        print("lat_0", lat, "long_0", lng)
+        
+        #print(search_area_coordinates)
+        return ""
+        #with open("db.json", 'w') as jsonfile:
+            #json.dump(search_area_coordinates, jsonfile)
             #jsonfile.insert(search_area_coordinates)
     # return jsonify(response_object)
 
@@ -36,26 +57,6 @@ def getEvac():
     with open("db.json") as jsonfile:
         datavalue = json.load(jsonfile)
         return json.dumps(datavalue.get("evacuation_coordinates", ""))
-
-
-
-# def connect():
-#     host = socket.gethostname()
-#     port = 3000  # initiate port no above 1024
-#     server_socket = socket.socket()  # get instance
-
-#     server_socket.bind((host, port))  # bind host address and port together
-
-#     server_socket.listen(2)
-#     conn, address = server_socket.accept()  # accept new connection
-    
-#     print("Connection from: " + str(address))
-#     message = input(" -> ")  # take input
-#     while message.lower().strip() != 'bye':
-#         conn.send(message.encode())  # send message
-#         message = input(" -> ")  # again take input
-#     conn.close()  # close the connection
-
 
 
 def main():
