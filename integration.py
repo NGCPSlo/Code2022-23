@@ -3,7 +3,7 @@ import time
 import threading
 import request_client
 from drone_client import DroneClient
-import Stepper
+from Stepper import Stepper
 from dai_red_object_detection import Vision
 # udp:localhost:14551 for simulation
 # /dev/ttyTHS1 for UART
@@ -57,10 +57,10 @@ def main():
     FIRE_RELAX = -1000
     FIRE_WAIT = 15 # seconds
 
-    EVAC_PIN1 = 0
-    EVAC_PIN2 = 0
-    EVAC_PIN3 = 0
-    EVAC_PIN4 = 0
+    EVAC_PIN1 = 29
+    EVAC_PIN2 = 31
+    EVAC_PIN3 = 33
+    EVAC_PIN4 = 35
     EVAC_RELEASE = -1000
     EVAC_RETURN = 1000
     PAYLOAD_WAIT = 100 # seconds
@@ -76,7 +76,7 @@ def main():
 
     updateArgs = [drone,"localhost", 5000]
     
-    ug = RepeatedTimer(1, update_gcs, *updateArgs)
+    #ug = RepeatedTimer(1, update_gcs, *updateArgs)
     drone.armVehicle()
     drone.takeoff(TAKEOFF_HEIGHT)
     # fire_servo = Stepper(RPM, FIRE_PIN1, FIRE_PIN2, FIRE_PIN3, FIRE_PIN4)
@@ -85,7 +85,7 @@ def main():
 
     fire_detector = Vision()
     # command = {"argType": "Evac", "lat": 35.300614, "lon": -120.663356, "alt": current_height}
-    command = {"argType": "Evac", "lat": 35.299095, "lon":  -120.662977, "alt": current_height}
+    command = {"argType": "Fire", "lat": 35.299095, "lon":  -120.662977, "alt": current_height}
     while(mission):
         #check for command message, using test command for now
         # If not command received, update GCS and continue
@@ -103,7 +103,7 @@ def main():
             evac_servo.step(EVAC_RETURN)         # return the winch, CW
         if (command["argType"] == "Fire"):
             print("Firing")
-            drone.flyToCords(command["lat"], command["lon"], command["alt"])
+            #drone.flyToCords(command["lat"], command["lon"], command["alt"])
             # Identify and Extinguish Fire
 
             box = fire_detector.red_detection()

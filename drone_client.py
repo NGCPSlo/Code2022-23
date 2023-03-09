@@ -24,9 +24,12 @@ class DroneClient:
         Connects to vehicle and blocks until it is ready. Waits until vehicle is ready.
         '''
         print("Connecting to vehicle on: %s" % (self.connectionStr,))
-        self.vehicle = connect(
-            self.connectionStr, wait_ready=True, baud=self.baud, heartbeat_timeout=120)
-
+        while True:
+            try:
+                self.vehicle = connect(self.connectionStr, wait_ready=True, baud=self.baud, timeout = 120, heartbeat_timeout=120)
+                break
+            except:
+                pass
     def armVehicle(self):
         """
         Ensures vehicle is ready to arm and arms it. Blocks until vehicle is armed.
@@ -34,11 +37,6 @@ class DroneClient:
 
         if self.vehicle == None:
             self.connect()
-
-        # Waits until drone is armable
-        while not self.vehicle.is_armable:
-            print(" Waiting until armable...")
-            time.sleep(1)
 
         # Sets the drone mode to guided, blocks until complete
         print("Arming the vehicle")
@@ -55,8 +53,10 @@ class DroneClient:
 
     def takeoff(self, heightInM):
         print("Taking off the vehicle")
+        self.vehicle.mode = VehicleMode("GUIDED")
         self.vehicle.simple_takeoff(alt=heightInM)
         # Delay until takeoff height is reached
+
         while self.vehicle.mode.name == "GUIDED":
             print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
             # Within 5% of target altitude or within 1m
@@ -146,6 +146,7 @@ class DroneClient:
         targetDistance = self.get_distance_metres(
             currentLocation, targetLocation)
         print(targetLocation)
+        self.vehicle.mode = VehicleMode("GUIDED")
         self.vehicle.simple_goto(targetLocation)
     
         # Stop action if we are no longer in guided mode.
@@ -184,6 +185,7 @@ class DroneClient:
             alt = startLocation.alt
         targetLocation = LocationGlobalRelative(lat = float(lat), lon =float(lon), alt = float(alt))
         print(targetLocation)
+        self.vehicle.mode = VehicleMode("GUIDED")
         self.vehicle.simple_goto(targetLocation, airspeed, groundspeed)
 
         targetDistance = self.get_distance_metres(
