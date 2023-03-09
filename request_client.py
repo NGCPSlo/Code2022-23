@@ -196,14 +196,10 @@ def on_message_mod(requested: str, port: int):
 #     time.sleep(0.5)
 
 
-def send_cords(ip_address: str, msg_type: str, cords: str, port: int):
+def send_cords(ip_address: str, msg_type: str, cord: str, port: int):
     #sends coordinate information to GCS
     request_body = {
-        msg_type: 
-            {
-                "lat": cords[0][0],
-                "lng": cords[0][1]
-            }
+        msg_type: cord
     }    
     # POST updated search area coords onto the database. 
     #sends information to GCS 
@@ -231,7 +227,7 @@ def send_cords(ip_address: str, msg_type: str, cords: str, port: int):
 
 
 def main():
-    cords = [[25, 10], [15,4], [11, 12]] #test current locations
+    cords = [25, 10] #test current locations
     ip_address = 'localhost'
     port = 5000
     # on_message_mod("geo", port)

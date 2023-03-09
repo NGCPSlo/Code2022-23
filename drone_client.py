@@ -134,7 +134,7 @@ class DroneClient:
         return self.vehicle.location.global_relative_frame
         
 
-    def flyToMeters(self, dNorth, dEast, gotoFunction=None):
+    def flyToMeters(self, dNorth, dEast):
         """
         Takes in Cartesian coordinates in meters as a target to fly to. 
         Then flies the vehicle to the target location, stopping once the target has been reached.
@@ -145,10 +145,9 @@ class DroneClient:
             currentLocation, dNorth, dEast)
         targetDistance = self.get_distance_metres(
             currentLocation, targetLocation)
-        if (gotoFunction == None):
-            gotoFunction = self.vehicle.simple_goto
-        gotoFunction(targetLocation)
-
+        print(targetLocation)
+        self.vehicle.simple_goto(targetLocation)
+    
         # Stop action if we are no longer in guided mode.
         while self.vehicle.mode.name == "GUIDED":
             remainingDistance = self.get_distance_metres(
@@ -175,13 +174,17 @@ class DroneClient:
     def goHome(self):
         self.vehicle.mode("RTL")
 
-    def flyToCords(self, lat: float, lon: float, alt: float = None):
+    def flyToCords(self, lat: float, lon: float, alt:float = None, groundspeed = None, airspeed = None):
         '''
         Sets vehicle target destination to a set of coordinates and blocks until destination reached
         '''
+        self.vehicle.mode = VehicleMode("GUIDED")
         startLocation = self.vehicle.location.global_relative_frame
-        targetLocation = LocationGlobalRelative(lat, lon, alt)
-        self.vehicle.simple_goto(targetLocation)
+        if alt == None:
+            alt = startLocation.alt
+        targetLocation = LocationGlobalRelative(lat = float(lat), lon =float(lon), alt = float(alt))
+        print(targetLocation)
+        self.vehicle.simple_goto(targetLocation, airspeed, groundspeed)
 
         targetDistance = self.get_distance_metres(
             startLocation, targetLocation)
