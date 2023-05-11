@@ -1,5 +1,5 @@
 # COMPUTER VISION SETUP
-## Pre-reqs:
+# Pre-reqs:
 - Windows
 - Python 3.11
 - VScode
