@@ -3,6 +3,7 @@ import cv2 as cv
 import numpy as np
 import depthai as dai
 from collections import deque
+import math
 
 # color detection bounds
 #HSV_LOW = [160, 100, 50]
@@ -14,6 +15,13 @@ HSV_HIGH = [255, 255, 255]
 ASPECT_UPPER = 1.5
 ASPECT_LOWER = 0.8
 BUFFER_SIZE = 13 # Increasing Buffer improves accuracy, but uses memory
+
+# Physical Constants
+MOUNTING_ANGLE = 45 # degrees
+
+# Focal length in pixels (this may need to be calibrated)
+# focal length (pixels) = (focal length (mm) / sensor width (mm)) * image width (pixels)
+focal_length_pixels = 998
 
 
 class Vision:
@@ -30,12 +38,37 @@ class Vision:
 		xoutVideo = pipeline.create(dai.node.XLinkOut)
 		xoutVideo.setStreamName("video")
 
+		# Define depth output
+		stereo = pipeline.create(dai.node.StereoDepth)
+		xoutDepth = pipeline.create(dai.node.XLinkOut)
+		xoutDepth.setStreamName("depth")
+
 		# Linking
 		camRgb.video.link(manip.inputImage)
 		manip.out.link(xoutVideo.input)
+
+		stereo.setOutputDepth(True)
+		stereo.setOutputRectified(False)
+		#0...255 (too high inaccurate, too low more noise)
+		stereo.setConfidenceThreshold(155) # determined experimentally
+
+		camMonoLeft = pipeline.create(dai.node.MonoCamera)
+		camMonoRight = pipeline.create(dai.node.MonoCamera)
+		camMonoLeft.setResolution(dai.MonoCameraProperties.SensorResolution.THE_720_P)
+		camMonoRight.setResolution(dai.MonoCameraProperties.SensorResolution.THE_720_P)
+		camMonoLeft.setBoardSocket(dai.CameraBoardSocket.LEFT)
+		camMonoRight.setBoardSocket(dai.CameraBoardSocket.RIGHT)
+
+		# Link the mono cameras to the StereoDepth node
+		camMonoLeft.out.link(stereo.left)
+		camMonoRight.out.link(stereo.right)
+
+		# Link the depth output
+		stereo.depth.link(xoutDepth.input)
+
 		# Properties
 		camRgb.setBoardSocket(dai.CameraBoardSocket.RGB)
-		camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
+		camRgb.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P) #ideally 1080, but 720 for better depth
 		camRgb.setInterleaved(True)
 		camRgb.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
 		camRgb.setFps(24)
@@ -52,15 +85,19 @@ class Vision:
 		# capture frames from a camera 
 		# cap = cv.VideoCapture(1) 
 			video = device.getOutputQueue('video', maxSize=8, blocking=False)
+			depth = device.getOutputQueue('depth', maxSize=4, blocking=False)
 
 			img_buf = deque()
 			aspect_sum = 0
+			depth_sum = 0
 
 			while(True):
 				videoFrame = video.get()
+				depthFrame = depth.get()
 				# reads frames from a camera 
 				# ret, img = cap.read()
 				img = videoFrame.getCvFrame()
+				depthImg = depthFrame.getFrame()
 
 				#convert the BGR image to HSV colour space
 				hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
@@ -144,47 +181,97 @@ class Vision:
 					box = cv.boxPoints(rect)
 					box = np.int0(box)
 
+					# Get the bounding box in the depth image frame
+					x_min = int(min(box, key=lambda x: x[0])[0])
+					y_min = int(min(box, key=lambda x: x[1])[1])
+					x_max = int(max(box, key=lambda x: x[0])[0])
+					y_max = int(max(box, key=lambda x: x[1])[1])
+                
+					# Get the depth for the bounding box (average)
+					boundingBox = depthImg[y_min:y_max, x_min:x_max]
+					if boundingBox.size > 0:
+						depthBoundingBox = np.average(depthImg[y_min:y_max, x_min:x_max])
+						depthBoundingBox = depthBoundingBox / 1000
+					else:
+						depthBoundingBox = 0
+					#print("Depth (in meters):", depthBoundingBox)
+
 					# Calulate Center of Detection
 					center = ((box[0][0] + box[3][0])/2, (box[0][1] + box[3][1])/2)
 
 					#return {"Box": box, "Aspect": aspect_ratio, "Center": center}
-					img_buf.append({"Box": box, "Aspect": aspect_ratio, "Center": center})
+					img_buf.append({"Box": box, "Aspect": aspect_ratio, "Center": center, "Depth": depthBoundingBox})
 					aspect_sum += aspect_ratio
+					depth_sum += depthBoundingBox
 					count += 1
 
 					# draw detection rectangles
-					# cv.drawContours(added_img, [box], 0, (0,255,0), 1)
+					#cv.drawContours(added_img, [box], 0, (0,255,0), 1)
 
 				# display image with detection boxes
-				# cv.namedWindow('Contours', cv.WINDOW_NORMAL)
-				# cv.imshow('Contours', added_img)
+				#cv.namedWindow('Contours', cv.WINDOW_NORMAL)
+				#cv.imshow('Contours', added_img)
+
+				#depthImgNormalized = cv.normalize(depthImg, None, 0, 255, cv.NORM_MINMAX)
+
+				# Convert the normalized image to an 8-bit image for displaying
+				#depthImgNormalized = np.uint8(depthImgNormalized)
+
+				# Apply the color map to the depth image
+				#[depthImgColor = cv.applyColorMap(depthImgNormalized, cv.COLORMAP_JET)
+
+
+				#cv.namedWindow('depth', cv.WINDOW_NORMAL)
+				#cv.imshow('depth', depthImgColor)
 
 				if (count >= BUFFER_SIZE):
 					avg_aspect = aspect_sum / BUFFER_SIZE
-					print(avg_aspect)
+					avg_depth = depth_sum / BUFFER_SIZE
+					#print(avg_aspect)
+					#print("Depth")
+					#print(avg_depth)
 
 					if (avg_aspect <= ASPECT_UPPER) or (avg_aspect >= ASPECT_LOWER):
-						average_box = {"Aspect": 0, "Center": [0,0]}
+						average_box = {"Aspect": 0, "Center": [0,0], "Depth": 0}
 						boxes = []
 						for i in img_buf:
 							boxes.append(i["Box"])
 							average_box["Aspect"] += i["Aspect"]
 							average_box["Center"][0] += i["Center"][0]
 							average_box["Center"][1] += i["Center"][1]
+							average_box["Depth"] += i["Depth"]
 						
-						print(boxes)
+						#print(boxes)
 						average_box["Box"] = np.average(boxes, axis = 0)
 						average_box["Box"] = np.asarray(average_box["Box"], dtype="int")
 						average_box["Aspect"] /= count
 						average_box["Center"][0] /= count
 						average_box["Center"][1] /= count
-						return average_box
+						average_box["Depth"] /= count
+						#return average_box
+						z = math.sin(MOUNTING_ANGLE) * average_box["Depth"]
+						y = math.cos(MOUNTING_ANGLE) * average_box["Depth"]
+
+						# Get x coordinates of object's center and image center
+						x_centerObject = average_box["Center"][0]
+						x_centerImage = added_img.shape[0]/2
+
+						# Compute the horizontal displacement in pixels
+						pixel_displacement = x_centerObject - x_centerImage
+
+						# Compute x as the physical displacement in meters
+						x = (pixel_displacement / focal_length_pixels) * average_box["Depth"]
+
+						#print(x_center)
+						#print([x, y, z])
+						return([x, y, z])
 
 					old_data = img_buf.popleft()
-					aspect_sum -= old_data["Aspect"] 					
+					aspect_sum -= old_data["Aspect"] 
+					depth_sum -= old_data["Depth"]					
 					count -= 1
 
-				# on kjey 'q' stop
+				# on key 'q' stop
 				if cv.waitKey(1) & 0xFF == ord('q'):
 					break
 

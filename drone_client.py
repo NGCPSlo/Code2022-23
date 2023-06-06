@@ -28,6 +28,8 @@ class DroneClient:
             try:
                 self.vehicle = connect(self.connectionStr, wait_ready=True, baud=self.baud, timeout = 120, heartbeat_timeout=120)
                 break
+            except (KeyboardInterrupt, SystemExit):
+                raise
             except:
                 pass
     def armVehicle(self):
@@ -40,16 +42,17 @@ class DroneClient:
 
         # Sets the drone mode to guided, blocks until complete
         print("Arming the vehicle")
-        self.vehicle.mode = VehicleMode("GUIDED")
         while self.vehicle.mode.name != "GUIDED":
+            self.vehicle.mode = VehicleMode("GUIDED")
             time.sleep(1)
 
         # Set vehicle to armed and blocks until it is
 
-        self.vehicle.armed = True
         while not self.vehicle.armed:
             print(" Waiting for arming...")
+            self.vehicle.armed = True
             time.sleep(1)
+        print("Vehicle Armed")
 
     def takeoff(self, heightInM):
         print("Taking off the vehicle")
@@ -61,7 +64,7 @@ class DroneClient:
             print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
             # Within 5% of target altitude or within 1m
             if self.vehicle.location.global_relative_frame.alt >= heightInM*0.95 or\
-                    abs(self.vehicle.location.global_relative_frame.alt-heightInM) < 1:
+                    abs(self.vehicle.location.global_relative_frame.alt-heightInM) < 0.1:
                 print("Reached target altitude")
                 break
             time.sleep(1)
@@ -173,7 +176,7 @@ class DroneClient:
         print(" Location: %s" % vehicle.location.global_frame)
 
     def goHome(self):
-        self.vehicle.mode("RTL")
+        self.vehicle.mode = VehicleMode("RTL")
 
     def flyToCords(self, lat: float, lon: float, alt:float = None, groundspeed = None, airspeed = None):
         '''
@@ -197,7 +200,7 @@ class DroneClient:
                 self.vehicle.location.global_frame, targetLocation)
             print("Distance to target: ", remainingDistance)
             # Block until 1% of target distance is reached or within 1m
-            if remainingDistance <= max(targetDistance*0.01, 1):
+            if remainingDistance <= max(targetDistance*0.01, 5):
                 print("Reached target")
                 break
             time.sleep(1)
@@ -238,11 +241,11 @@ if __name__ == '__main__':
     #     (30, -48),
     #     (30, -47.5)
     # ]
-    drone = DroneClient(connectionStr="udp:localhost:14551")
+    drone = DroneClient()
     drone.connect()
     # drone.setGeoFence(testGeoFence)
     drone.armVehicle()
-    drone.takeoff(20)
+    drone.takeoff(2)
     fence_points = int(drone.vehicle.parameters["FENCE_TOTAL"])
     print(fence_points)
     for i in range(fence_points):
