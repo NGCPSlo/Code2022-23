@@ -15,6 +15,14 @@ def getSearch():
         datavalue = json.load(jsonfile)
         return json.dumps(datavalue.get("search_area", ""))
 
+@app.route('/fire_location', methods=['GET'])
+def getFire():
+    with open("db.json") as jsonfile:
+        datavalue = json.load(jsonfile)
+        return json.dumps(datavalue.get("fire_location", ""))
+
+
+
 # @app.route('/postSearchArea', methods=['POST'])
 # def post_search_area():
 #     response_object = {'status': 'success'}
@@ -30,21 +38,21 @@ def getSearch():
     
 @app.route('/post_current', methods=['POST'])
 def post_current():
-    response_object = {'status': 'success'}
-    if request.method == 'POST':
-        search_area_coordinates = request.json['post_current']
-        lat = search_area_coordinates['lat']
-        lng = search_area_coordinates['lng']
-        
-        print("current_location")
-        print("lat_0", lat, "long_0", lng)
-        
-        #print(search_area_coordinates)
-        return ""
-        #with open("db.json", 'w') as jsonfile:
-            #json.dump(search_area_coordinates, jsonfile)
-            #jsonfile.insert(search_area_coordinates)
-    # return jsonify(response_object)
+    
+    # Read the existing contents of the db.json file
+    with open('db.json', 'r') as file:
+        data = json.load(file)
+    
+    # Get the new coordinate information from the request
+    coordinates = request.json
+    
+    # Update the post_current section with the new coordinate information
+    data["post_current"] = coordinates
+    
+    # Write the updated data back to the db.json file
+    with open('db.json', 'w') as file:
+        json.dump(data, file, indent=2)
+    return "success"
 
 @app.route('/home_coordinates', methods=['GET'])
 def getHome():

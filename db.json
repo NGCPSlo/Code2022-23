@@ -1,83 +1,61 @@
 {
-    "home_coordinates": {
-      "1": {
-        "vehicle": "MAC",
-        "lat": 33.93368449228065,
-        "lng": -117.63028265435334
-      },
-      "2": {
-        "vehicle": "MEA",
-        "lat": 33.934454472545525,
-        "lng": -117.63246060807343
-      },
-      "3": {
-        "vehicle": "ERU",
-        "lat": 33.93368449228065,
-        "lng": -117.63077618081208
-      }
+  "home_coordinates": {
+    "1": {
+      "vehicle": "MAC",
+      "lat": 33.93368449228065,
+      "lng": -117.63028265435334
     },
-    "geofence": [
-      {
-        "coordinates": [
-          {
-            "lat": 42,
-            "lng": 25
-          },
-          {
-            "lat": 13,
-            "lng": 19
-          },
-          {
-            "lat": 10,
-            "lng": 34
-          }
-        ],
-        "keep_in": true
-      },
-      {
-        "coordinates": [
-          {
-            "lat": 7,
-            "lng": 11
-          },
-          {
-            "lat": 17,
-            "lng": 13
-          },
-          {
-            "lat": 21,
-            "lng": 38
-          }
-        ],
-        "keep_in": false
-      }
-    ],
-    "evacuation_coordinates": {
-      "lat": 33.934071708659815,
-      "lng": -117.63107658822175
+    "2": {
+      "vehicle": "MEA",
+      "lat": 33.934454472545525,
+      "lng": -117.63246060807343
     },
-    "search_area": [
-      {
-        "lng": 12,
-        "lat": 14
-      },
-      {
-        "lng": 1,
-        "lat": 3
-      },
-      {
-        "lng": 5,
-        "lat": 17
-      }
-    ],
-    "postSearchArea":[
-  
-        
-    ],
-
-    "post_currrent":[
-  
-        
-    ]
-
-  }
+    "3": {
+      "vehicle": "ERU",
+      "lat": 33.93368449228065,
+      "lng": -117.63077618081208
+    }
+  },
+  "fire_location": [
+    {
+      "lng": 13,
+      "lat": 4
+    },
+    {
+      "lng": 75,
+      "lat": 12
+    },
+    {
+      "lng": 14,
+      "lat": 13
+    }
+  ],
+  "search_area": [
+    {
+      "lng": 1,
+      "lat": 14
+    },
+    {
+      "lng": 14,
+      "lat": 7
+    },
+    {
+      "lng": 5,
+      "lat": 17
+    }
+  ],
+  "post_current": [
+    {
+      "lat": 13,
+      "lng": 9
+    },
+    {
+      "lat": 14,
+      "lng": 15
+    },
+    {
+      "lat": 9,
+      "lng": 2
+    }
+  ]
+}
