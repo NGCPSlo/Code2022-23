@@ -7,8 +7,7 @@ This README is for the following files and is concerned for developing the commu
 - main_multiproccessing.py
 - db.json
 - ngcp comms system design.draw.io
-
-Multi_process.svg
+- Multi_process.svg
 
 ## Directions
 How to run:
