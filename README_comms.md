@@ -27,8 +27,8 @@ As for main_multiproccessing.py that file contains the integration code and boil
 Ideally for each of the functions, you just have to place your code inside it.
 
 To see how this work at a system design level, look at the following files
-  ngcp comms system design.draw.io
-  Multi_process.svg
+- ngcp comms system design.draw.io
+- Multi_process.svg
 
 Integration Code for the Medical Evacuation Aircraft(MEA) was meant to be run with multiprocessing
 
