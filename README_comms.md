@@ -32,6 +32,6 @@ To see how this work at a system design level, look at the following files
 
 Integration Code for the Medical Evacuation Aircraft(MEA) was meant to be run with multiprocessing
 
-Multiproccessing was chosen over multithreading because python has a Global Interpreter Lock(GIL) for multi-threading and so operations can't run in parallel
+Multiproccessing was chosen over multithreading because python has a Global Interpreter Lock(GIL) for multi-threading and so operations can't run in parallel.
 Multiprocessing doesn't have a GIL so running multiple operations in parallel is possible
 
