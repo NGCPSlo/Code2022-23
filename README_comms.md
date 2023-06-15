@@ -1,4 +1,4 @@
-#Integration Code for the Medical Evacuation Aircraft(MEA) was meant to be run with multiprocessing
+# Integration Code for the Medical Evacuation Aircraft(MEA) was meant to be run with multiprocessing
 
 This README is for the following files and is concerned for developing the communication software needed for the MEA
 - request_server.py
@@ -10,7 +10,7 @@ This README is for the following files and is concerned for developing the commu
 
 Multi_process.svg
 
-##Directions
+## Directions
 How to run:
 1. python request_server.py
 2. python main_multiprocessing.python
