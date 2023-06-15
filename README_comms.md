@@ -1,4 +1,4 @@
-# Integration Code for the Medical Evacuation Aircraft(MEA) was meant to be run with multiprocessing
+# Communication Code
 
 This README is for the following files and is concerned for developing the communication software needed for the MEA
 - request_server.py
@@ -19,6 +19,7 @@ How to run:
 
 
 ## Information about the communication code
+Integration Code for the Medical Evacuation Aircraft(MEA) was meant to be run with multiprocessing
 coords_class.py is a packaged library that contains get and post functions needed for interacting with the json database
 It's programmed in Python and utilizes the Flask micro-web framework
 
