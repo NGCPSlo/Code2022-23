@@ -3,12 +3,18 @@ Integration Code for the Medical Evacuation Aircraft(MEA) was meant to be run wi
 This README is for the following files and is concerned for developing the communication software needed for the MEA
 
 request_server.py
+
 coords_class.py
+
 coord_class_test.py
+
 main_multiproccessing.py
 
+
 db.json
+
 ngcp comms system design.draw.io
+
 Multi_process.svg
 
 How to run:
